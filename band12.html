@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Διαδραστικό Band Plan Ραδιοερασιτεχνών</title>
+<style>
+:root{--bg:#ffffff;--panel:#121d30;--panel2:#18263d;--line:#2a3b55;--txt:#edf4ff;--muted:#a9b9ce;--accent:#54c7d9;--accent2:#91e3c5;--warn:#ffd27a;--red:#ff9b9b}
+*{box-sizing:border-box}body{margin:0;background:#ffffff;color:var(--txt);font:15px/1.55 Arial,"DejaVu Sans",sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:20px}.hero{padding:26px 22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(120deg,#172944,#102238);box-shadow:0 10px 28px rgba(15,28,46,.14)}
+.kicker{color:var(--accent2);font-weight:700;letter-spacing:.12em;font-size:.76rem;text-transform:uppercase}.hero h1{margin:7px 0 4px;font-size:clamp(1.65rem,4vw,2.5rem);line-height:1.15}.hero p{color:var(--muted);max-width:850px;margin:8px 0 0}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.stat{background:#0b1728a8;border:1px solid #30465f;border-radius:12px;padding:8px 12px;color:#d9e8f7;font-size:.88rem}
+.notice{margin:16px 0;padding:13px 15px;border-radius:12px;background:#332b18;border:1px solid #766039;color:#ffe8b8;font-size:.9rem;box-shadow:0 4px 14px rgba(15,28,46,.08)}
+.toolbar,.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:16px;box-shadow:0 6px 20px rgba(15,28,46,.1)}
+.controls{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}.controls input,.controls select{width:100%;min-width:0;background:#0b1525;color:var(--txt);border:1px solid #3a506c;border-radius:10px;padding:11px;font:inherit}
+button{cursor:pointer;border:1px solid #3a5972;background:#1b3851;color:var(--txt);border-radius:10px;padding:10px 13px;font:inherit;font-weight:700}button:hover,.tab:hover{border-color:var(--accent);background:#21465c}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.tab{background:#0d192a;border:1px solid var(--line);color:#d7e6f5;padding:8px 13px;border-radius:999px}.tab.active{background:#17475a;border-color:var(--accent);color:#fff}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:.82rem}.pill{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:700;margin:2px 3px 2px 0;background:#213b54;color:#dff6ff}.pill.CW{background:#253b5d}.pill.SSB{background:#4b3153}.pill.FM{background:#285342}.pill.DIGI{background:#514322}.pill.BEACON{background:#4b3030}.pill.SAT{background:#39405c}.pill.REPEATER{background:#2c4d63}
+.bandgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px;margin-top:16px}
+.bandcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:.15s;box-shadow:0 4px 14px rgba(15,28,46,.1)}.bandcard:hover,.bandcard.selected{border-color:var(--accent);transform:translateY(-1px);background:var(--panel2)}
+.bandtop{display:flex;justify-content:space-between;gap:10px;align-items:center}.bandname{font-size:1.2rem;font-weight:800}.range{color:var(--accent2);font-weight:700;margin-top:6px}.small{font-size:.82rem;color:var(--muted)}.bar{height:8px;background:#26364b;border-radius:8px;margin-top:11px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,#42a9c5,#83e0bd)}
+.sectionhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.sectionhead h2{margin:0;font-size:1.35rem;color:#121d30}.sectionhead .small{color:#4a5d75}.panel .sectionhead h2{color:var(--txt)}.panel .sectionhead .small{color:var(--muted)}.tablewrap{overflow-x:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:720px;font-size:.9rem}th,td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:#a9c5d9;background:#17263a;position:sticky;top:0}td:first-child{font-weight:700;color:#dff5ff;white-space:nowrap}
+.empty{padding:22px;text-align:center;color:var(--muted)}.detailnote{background:#0d192a;border-left:3px solid var(--accent);padding:11px 13px;border-radius:7px;color:#c7d8e8;margin-top:12px}
+.filterbadge{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:999px;background:#16384a;border:1px solid #3c6e85;color:#bfefff;font-size:.78rem;font-weight:700}
+.freqresult{margin-top:12px;padding:12px;border:1px solid #3a6570;background:#102b36;border-radius:12px;display:none}.freqresult.show{display:block}
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.glossary div{background:#0d192a;border:1px solid var(--line);border-radius:10px;padding:11px}.glossary b{color:var(--accent2)}
+footer{color:#4a5d75;font-size:.82rem;padding:20px 4px 35px}footer b{color:#121d30}a{color:#0e6b82}
+@media(max-width:720px){.wrap{padding:12px}.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.controls button{grid-column:1/-1}.hero{padding:20px 16px}.toolbar,.panel{padding:13px}}
+@media print{body{background:white;color:#111}.hero,.toolbar,.panel,.bandcard{background:white;color:#111;border:1px solid #bbb;box-shadow:none}.hero p,.small,.legend,footer{color:#333}.notice{background:#fff8e7;color:#222}.tabs,.controls button{display:none}.bandgrid{grid-template-columns:repeat(2,1fr)}.panel{break-inside:avoid}th{background:#eee;color:#111}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+ <div class="kicker">Οδηγός ραδιοερασιτεχνικών συχνοτήτων · Ελλάδα · IARU Region 1</div>
+ <h1>Διαδραστικός Πίνακας Band Plan</h1>
+ <p>Εξερεύνησε τις μπάντες, δες τις προτεινόμενες χρήσεις ανά υποπεριοχή και αναζήτησε μια συχνότητα σε kHz, MHz ή GHz.</p>
+ <div class="stats"><span class="stat">HF · VHF · UHF · SHF</span><span class="stat">Αναζήτηση συχνότητας</span><span class="stat">Φίλτρα τρόπων εκπομπής</span><span class="stat">Εκτύπωση / PDF</span></div>
+</header>
+<div class="notice"><b>Σημαντικό για την Ελλάδα:</b> Το Band Plan της IARU είναι οδηγός κατανομής χρήσεων και δεν αποτελεί από μόνο του άδεια εκπομπής. Οι επιτρεπόμενες ζώνες, κατηγορίες άδειας, ισχύς, όροι και ειδικές σημειώσεις καθορίζονται από τον ισχύοντα ελληνικό ΕΚΚΖΣ και τους όρους της άδειάς σου. Ιδιαίτερη προσοχή στις 50 MHz, 70 MHz, 1,2 GHz και 2,3 GHz.</div>
+
+<section class="toolbar">
+ <div class="controls">
+  <input id="search" type="search" placeholder="Αναζήτηση: π.χ. FT8, APRS, αναμεταδότης, 14.074">
+  <select id="family"><option value="">Όλες οι περιοχές</option><option>HF</option><option>VHF</option><option>UHF</option><option>SHF</option></select>
+  <select id="mode"><option value="">Όλοι οι τρόποι</option><option value="CW">CW / Τηλεγραφία</option><option value="SSB">SSB / Φωνή</option><option value="FM">FM / Ψηφιακή φωνή</option><option value="DIGI">Ψηφιακά / MGM</option><option value="BEACON">Φάροι</option><option value="SAT">Δορυφόροι</option><option value="REPEATER">Αναμεταδότες</option></select>
+  <button id="clear">Καθαρισμός</button>
+ </div>
+ <div class="tabs" id="familyTabs">
+  <button class="tab active" data-family="">Όλες οι μπάντες</button>
+  <button class="tab" data-family="HF">HF</button><button class="tab" data-family="VHF">VHF</button><button class="tab" data-family="UHF">UHF</button><button class="tab" data-family="SHF">SHF</button>
+ </div>
+ <div class="legend"><span>Υπόμνημα:</span><span class="pill CW">CW</span><span class="pill SSB">SSB / Φωνή</span><span class="pill FM">FM / DV</span><span class="pill DIGI">Ψηφιακά</span><span class="pill BEACON">Φάροι</span><span class="pill SAT">Δορυφόροι</span><span class="pill REPEATER">Αναμεταδότες</span></div>
+ <div class="controls" style="margin-top:14px;grid-template-columns:2fr auto">
+  <input id="freq" type="text" placeholder="Εύρεση συχνότητας π.χ. 14.074 MHz ή 144300 kHz">
+  <button id="find">Εύρεση συχνότητας</button>
+ </div>
+ <div id="freqresult" class="freqresult" aria-live="polite"></div>
+</section>
+
+<section><div class="sectionhead" style="margin:20px 2px 0"><h2>Επιλογή μπάντας</h2><span class="small" id="count"></span></div><div class="bandgrid" id="cards"></div></section>
+<section class="panel" id="detail">
+ <div class="empty">Επίλεξε μία μπάντα για να δεις τις υποπεριοχές και τις προτεινόμενες χρήσεις της.</div>
+</section>
+
+<section class="panel">
+ <h2 style="margin-top:0">Γρήγορο γλωσσάρι</h2>
+ <div class="glossary">
+  <div><b>CW</b><br>Τηλεγραφία Morse.</div>
+  <div><b>SSB</b><br>Μονόπλευρη διαμόρφωση φωνής (USB ή LSB).</div>
+  <div><b>FM</b><br>Διαμόρφωση συχνότητας, συχνή σε VHF/UHF.</div>
+  <div><b>MGM / DIGI</b><br>Μηχανικά παραγόμενες ψηφιακές λειτουργίες, π.χ. FT8, RTTY, PSK.</div>
+  <div><b>APRS</b><br>Σύστημα αναφοράς θέσης και ανταλλαγής πακέτων δεδομένων.</div>
+  <div><b>Beacon</b><br>Σταθμός-φάρος για έλεγχο διάδοσης και προσανατολισμό.</div>
+  <div><b>EME</b><br>Επικοινωνία Γη–Σελήνη–Γη (Moonbounce).</div>
+  <div><b>Repeater</b><br>Αναμεταδότης που λαμβάνει και επανεκπέμπει σε διαφορετική συχνότητα.</div>
+  <div><b>Satellite</b><br>Δορυφορικές επικοινωνίες, με συγκεκριμένες ζεύξεις uplink/downlink.</div>
+  <div><b>CoA</b><br>Centre of Activity: διεθνώς συμφωνημένο κέντρο δραστηριότητας, όχι αποκλειστική συχνότητα.</div>
+ </div>
+</section>
+<footer>
+ <b>Πηγές και πλαίσιο:</b><br>
+ • <a href="https://www.iaru-r1.org/on-the-air/band-plans/" target="_blank" rel="noopener">IARU Region 1 – Band Plans</a> ·
+ <a href="https://www.iaru-r1.org/about-us/committees-and-working-groups/vhf-uhf-shf-committee-c5/vhf-up-bandplanning/" target="_blank" rel="noopener">Επίσημα VHF/UHF/SHF Band Plans</a><br>
+ • <a href="https://raag.org/iaru-r1-band-plans/" target="_blank" rel="noopener">Ένωση Ελλήνων Ραδιοερασιτεχνών – Band Plans προσαρμοσμένα στον ελληνικό ΕΚΚΖΣ</a> ·
+ <a href="https://www.eett.gr/nomiko-plaisio/egkrisi-ethnikou-kanonismou-katanomis-zonon-sychnotiton-ekkzs/" target="_blank" rel="noopener">ΕΕΤΤ – ΕΚΚΖΣ</a><br>
+ Βάση αναφοράς: IARU Region 1 HF Band Plan και επίσημα VHF/UHF/SHF σχέδια. Οι υποπεριοχές και οι χρήσεις είναι λειτουργικές οδηγίες· οι εθνικοί περιορισμοί υπερισχύουν. Έλεγξε τις πιο πρόσφατες επίσημες δημοσιεύσεις πριν από εκπομπή.
+</footer>
+</div>
+<script>
+const bands = [
+{ id:'2200',family:'HF',name:'2200 m',range:'135,7–137,8 kHz',min:135700,max:137800,unit:'kHz',desc:'Πολύ χαμηλή συχνότητα (LF). Εξειδικευμένες στενής ζώνης ψηφιακές εκπομπές.',rows:[['135,7–137,8 kHz','CW, στενής ζώνης ψηφιακά','NBD / CW','Έλεγχος ειδικών όρων κατανομής και ισχύος.']]},
+{ id:'630',family:'HF',name:'630 m',range:'472–479 kHz',min:472000,max:479000,unit:'kHz',desc:'LF μπάντα για CW και στενής ζώνης ψηφιακές επικοινωνίες.',rows:[['472–475 kHz','CW','CW','Τμήμα τηλεγραφίας.'],['475–479 kHz','Στενής ζώνης ψηφιακά','DIGI','Συμπεριλαμβάνει ψηφιακές λειτουργίες χαμηλού εύρους.']]},
+{ id:'160',family:'HF',name:'160 m',range:'1,810–2,000 MHz',min:1810,max:2000,unit:'MHz',desc:'Η χαμηλότερη κλασική HF μπάντα· τοπικές και νυχτερινές επικοινωνίες.',rows:[['1,810–1,838 MHz','CW','CW','Προτεραιότητα για DX. Κέντρο CW QRP: 1,836 MHz.'],['1,838–1,840 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες στενού εύρους.'],['1,840–1,843 MHz','Όλες οι επιτρεπόμενες λειτουργίες','SSB DIGI','Χρήση σύμφωνα με το HF Band Plan.'],['1,843–2,000 MHz','Φωνή / μικτές λειτουργίες','SSB','Στην Ελλάδα, 1,850–2,000 kHz έχει δευτερεύουσα κατανομή· έλεγξε ΕΚΚΖΣ.']]},
+{ id:'80',family:'HF',name:'80 m',range:'3,500–3,800 MHz',min:3500,max:3800,unit:'MHz',desc:'Ισχυρή μπάντα για τοπικά και ευρωπαϊκά QSO, ιδιαίτερα βράδυ/νύχτα.',rows:[['3,500–3,510 MHz','CW, προτεραιότητα DX','CW','Προτεραιότητα για διηπειρωτική δραστηριότητα.'],['3,510–3,560 MHz','CW','CW','CW και διαγωνισμοί.'],['3,560–3,570 MHz','CW QRP','CW','Κέντρο CW QRP: 3,560 MHz.'],['3,570–3,600 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['3,600–3,800 MHz','Όλες οι λειτουργίες / φωνή','SSB','SSB, contest και κέντρα δραστηριότητας.']]},
+{ id:'60',family:'HF',name:'60 m',range:'5,351,5–5,366,5 MHz',min:5.3515,max:5.3665,unit:'MHz',desc:'Μικρή υποζώνη με αυστηρούς περιορισμούς εύρους και ισχύος.',rows:[['5,3515–5,3540 MHz','CW / στενής ζώνης ψηφιακά','CW DIGI','Μέγιστο εύρος ζώνης 200 Hz στο τμήμα CW/NBD.'],['5,3540–5,3660 MHz','Όλες οι λειτουργίες εντός ορίων','SSB DIGI','USB για φωνή· μέγιστο εύρος 2,7 kHz.'],['5,3660–5,3665 MHz','Weak-signal στενής ζώνης','DIGI','Πολύ στενό τμήμα weak-signal.'] ],note:'Η περιοχή 5 MHz υπόκειται σε ειδικούς εθνικούς όρους. Μην θεωρείς δεδομένο ότι όλη η περιοχή είναι διαθέσιμη σε κάθε κατηγορία άδειας.'},
+{ id:'40',family:'HF',name:'40 m',range:'7,000–7,200 MHz',min:7000,max:7200,unit:'MHz',desc:'Δημοφιλής μπάντα για ευρωπαϊκή και παγκόσμια επικοινωνία.',rows:[['7,000–7,040 MHz','CW','CW','Κέντρο CW QRP: 7,030 MHz.'],['7,040–7,050 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακά modes.'],['7,050–7,060 MHz','Μικτές λειτουργίες / ψηφιακά','DIGI SSB','Τήρηση ορίων εύρους και προτεινόμενης χρήσης.'],['7,060–7,200 MHz','Φωνή / όλες οι λειτουργίες','SSB','SSB, contest και κέντρα δραστηριότητας.']]},
+{ id:'30',family:'HF',name:'30 m',range:'10,100–10,150 MHz',min:10100,max:10150,unit:'MHz',desc:'Μπάντα CW και ψηφιακών modes· δεν προορίζεται για συνήθη φωνή.',rows:[['10,100–10,130 MHz','CW','CW','Κέντρο CW QRP: 10,116 MHz.'],['10,130–10,150 MHz','Στενής ζώνης ψηφιακά','DIGI','RTTY, PSK και άλλες στενής ζώνης λειτουργίες.']],note:'Δεν προβλέπεται συνήθης τηλεφωνία SSB στη συγκεκριμένη μπάντα.'},
+{ id:'20',family:'HF',name:'20 m',range:'14,000–14,350 MHz',min:14000,max:14350,unit:'MHz',desc:'Κύρια μπάντα DX, με καλή διάδοση κατά τη διάρκεια της ημέρας.',rows:[['14,000–14,060 MHz','CW','CW','CW και διαγωνισμοί.'],['14,060–14,070 MHz','CW / QRP','CW','Κέντρο CW QRP: 14,060 MHz.'],['14,070–14,099 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['14,099–14,101 MHz','Διεθνείς φάροι','BEACON','International Beacon Project.'],['14,101–14,125 MHz','Μικτές λειτουργίες / ψηφιακά','DIGI SSB','Σύμφωνα με το Band Plan.'],['14,125–14,350 MHz','Φωνή / όλες οι λειτουργίες','SSB','SSB, DX, contest, SSTV και κέντρα δραστηριότητας.']]},
+{ id:'17',family:'HF',name:'17 m',range:'18,068–18,168 MHz',min:18068,max:18168,unit:'MHz',desc:'Ήσυχη HF μπάντα, συχνά καλή για DX.',rows:[['18,068–18,095 MHz','CW','CW','CW και QRP.'],['18,095–18,110 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['18,110–18,168 MHz','Φωνή / όλες οι λειτουργίες','SSB','USB και άλλες επιτρεπόμενες λειτουργίες.']]},
+{ id:'15',family:'HF',name:'15 m',range:'21,000–21,450 MHz',min:21000,max:21450,unit:'MHz',desc:'Υψηλότερη HF μπάντα με δυνατότητα μακρινών επικοινωνιών όταν η διάδοση είναι καλή.',rows:[['21,000–21,070 MHz','CW','CW','CW και διαγωνισμοί.'],['21,070–21,110 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['21,110–21,450 MHz','Φωνή / όλες οι λειτουργίες','SSB','SSB, DX και contest.']]},
+{ id:'12',family:'HF',name:'12 m',range:'24,890–24,990 MHz',min:24890,max:24990,unit:'MHz',desc:'Μικρή HF μπάντα, με συμπεριφορά διάδοσης κοντά στα 10 και 15 m.',rows:[['24,890–24,915 MHz','CW','CW','Τμήμα CW.'],['24,915–24,930 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['24,930–24,990 MHz','Φωνή / όλες οι λειτουργίες','SSB','USB και άλλες επιτρεπόμενες λειτουργίες.']]},
+{ id:'10',family:'HF',name:'10 m',range:'28,000–29,700 MHz',min:28000,max:29700,unit:'MHz',desc:'Υψηλή HF μπάντα για DX, τοπικό FM και δορυφορικές δραστηριότητες.',rows:[['28,000–28,070 MHz','CW','CW','CW.'],['28,070–28,190 MHz','Στενής ζώνης ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['28,190–28,300 MHz','Φάροι / ψηφιακά','BEACON DIGI','Τμήμα φάρων και ψηφιακής δραστηριότητας.'],['28,300–29,000 MHz','SSB / φωνή','SSB','DX και τηλεφωνία.'],['29,000–29,200 MHz','Μικτές λειτουργίες','SSB DIGI','Έλεγξε την επιμέρους χρήση.'],['29,200–29,300 MHz','Ψηφιακά / δεδομένα','DIGI','Ψηφιακές λειτουργίες.'],['29,300–29,510 MHz','Δορυφορική επικοινωνία','SAT','Τμήμα δορυφορικής υπηρεσίας.'],['29,510–29,700 MHz','FM','FM','FM simplex και αναμεταδότες σύμφωνα με το σχέδιο.']]},
+{ id:'6m',family:'VHF',name:'6 m',range:'50–52 MHz',min:50,max:52,unit:'MHz',desc:'Μεταβατική περιοχή HF/VHF, γνωστή για sporadic-E και άλλους τρόπους διάδοσης.',rows:[['50,000–50,100 MHz','CW / φάροι','CW BEACON','Συντονισμένοι φάροι και τηλεγραφία.'],['50,100–50,200 MHz','SSB / CW','SSB CW','Κέντρα δραστηριότητας 50,110 και 50,150 MHz.'],['50,200–50,300 MHz','SSB / CW / γενική χρήση','SSB CW','Γενική weak-signal δραστηριότητα.'],['50,300–50,400 MHz','Ψηφιακά στενής ζώνης','DIGI','MGM, EME και meteor scatter.'],['50,400–50,500 MHz','Φάροι','BEACON','Τμήμα φάρων.'],['50,500–52,000 MHz','Μικτές λειτουργίες / FM','FM DIGI SSB','Περιλαμβάνει simplex, DV και repeater υποπεριοχές κατά το IARU plan.']],note:'Στην Ελλάδα η χρήση 50–52 MHz υπόκειται σε ειδική εθνική πρόβλεψη/απόφαση· δεν πρέπει να θεωρείται αυτομάτως διαθέσιμη για κανονική εκπομπή.'},
+{ id:'4m',family:'VHF',name:'4 m',range:'70–70,35 MHz',min:70,max:70.35,unit:'MHz',desc:'Περιοχή VHF που δεν είναι διαθέσιμη με τον ίδιο τρόπο σε όλες τις χώρες.',rows:[['70,000–70,090 MHz','Συντονισμένοι φάροι','BEACON','Φάροι.'],['70,090–70,100 MHz','Προσωρινοί / προσωπικοί φάροι','BEACON','Περιλαμβάνει WSPR.'],['70,100–70,250 MHz','SSB / CW / MGM','SSB CW DIGI','Κέντρο δραστηριότητας 70,200 MHz.'],['70,250–70,294 MHz','AM / FM / MGM','FM DIGI','Κέντρο δραστηριότητας 70,260 MHz.'],['70,294–70,500 MHz','FM / ψηφιακή φωνή','FM','Κανάλια με βήμα 12,5 kHz.']],note:'Η περιοχή 70–70,350 MHz στην Ελλάδα υπάγεται σε ειδική πρόβλεψη ΕΚΚΖΣ 2025 για πειραματική χρήση κατόπιν ειδικής απόφασης.'},
+{ id:'2m',family:'VHF',name:'2 m',range:'144–146 MHz',min:144,max:146,unit:'MHz',desc:'Η πιο διαδεδομένη VHF μπάντα για τοπική επικοινωνία, αναμεταδότες, SSB και δορυφόρους.',rows:[['144,000–144,025 MHz','Δορυφορικό downlink','SAT','Μόνο λήψη δορυφορικής ζεύξης κατά το σχέδιο.'],['144,025–144,100 MHz','CW','CW','Κέντρο τηλεγραφίας 144,050 MHz.'],['144,100–144,150 MHz','MGM / CW / EME','DIGI CW','Weak signal και EME.'],['144,150–144,400 MHz','SSB / CW / MGM','SSB CW DIGI','Κέντρο SSB 144,300 MHz· meteor scatter.'],['144,400–144,500 MHz','Φάροι','BEACON','Αποκλειστικό τμήμα φάρων.'],['144,500–144,794 MHz','Εικόνα / δεδομένα / ATV','DIGI','SSTV, RTTY, δεδομένα και ATV talkback.'],['144,794–144,9625 MHz','Ψηφιακές επικοινωνίες','DIGI','APRS στα 144,800 MHz και ψηφιακές πύλες.'],['144,975–145,194 MHz','Είσοδοι αναμεταδοτών','REPEATER FM','FM/DV repeater inputs.'],['145,194–145,206 MHz','Διαστημικές επικοινωνίες','SAT','Ζώνη επικοινωνίας με διαστημικούς σταθμούς.'],['145,206–145,5625 MHz','FM / ψηφιακή φωνή simplex','FM','Κλήση FM: 145,500 MHz.'],['145,575–145,7935 MHz','Έξοδοι αναμεταδοτών','REPEATER FM','FM/DV repeater outputs.'],['145,794–145,806 MHz','Διαστημικές επικοινωνίες','SAT','Τμήμα διαστημικής επικοινωνίας.'],['145,806–146,000 MHz','Δορυφορικές επικοινωνίες','SAT','Δορυφορική υπηρεσία.']]},
+{ id:'70cm',family:'UHF',name:'70 cm',range:'430–440 MHz',min:430,max:440,unit:'MHz',desc:'Ευρεία UHF μπάντα για FM, αναμεταδότες, ψηφιακές επικοινωνίες και δορυφόρους.',rows:[['430,000–431,975 MHz','Μικτές λειτουργίες / αναμεταδότες','FM REPEATER','Περιλαμβάνει έξοδοι/είσοδοι αναμεταδοτών.'],['432,000–432,100 MHz','CW / MGM','CW DIGI','Κέντρο CW 432,050 MHz.'],['432,100–432,400 MHz','SSB / CW / MGM','SSB CW DIGI','Κέντρο SSB 432,200 MHz, EME και meteor scatter.'],['432,400–432,500 MHz','Φάροι','BEACON','Αποκλειστικό τμήμα φάρων.'],['432,500–432,975 MHz','Μικτές λειτουργίες / APRS','DIGI','APRS και τμήματα εισόδων αναμεταδοτών.'],['433,000–433,575 MHz','FM / ψηφιακή φωνή','FM REPEATER','Κλήση FM 433,500 MHz· ψηφιακή φωνή 433,450 MHz.'],['433,600–434,594 MHz','Ψηφιακά / ATV / μικτές','DIGI','Ψηφιακά κανάλια και ATV.'],['434,594–434,981 MHz','Έξοδοι αναμεταδοτών','REPEATER FM','FM/DV repeater outputs.'],['435,000–438,000 MHz','Δορυφόροι','SAT','Δορυφορική υπηρεσία και DATV/data.'],['438,000–440,000 MHz','Μικτές λειτουργίες','FM DIGI','Ψηφιακές ζεύξεις και έξοδοι αναμεταδοτών.']]},
+{ id:'23cm',family:'UHF',name:'23 cm',range:'1.240–1.300 MHz',min:1240,max:1300,unit:'MHz',desc:'Μικροκυματική UHF μπάντα για narrowband, ATV, ψηφιακά, αναμεταδότες και δορυφόρους.',rows:[['1.240–1.241 MHz','Μικτές λειτουργίες / φάροι','BEACON DIGI','Υποπεριοχές φάρων και FM/DV.'],['1.241–1.243,25 MHz','Μικτές λειτουργίες / αναμεταδότες','REPEATER','Ψηφιακές ζεύξεις και αναμεταδότες.'],['1.243,25–1.260 MHz','ATV / DATV','DIGI','Τηλεόραση ραδιοερασιτεχνών.'],['1.260–1.270 MHz','Δορυφορική υπηρεσία','SAT','Δορυφορικό τμήμα.'],['1.270–1.290,994 MHz','ATV / δεδομένα','DIGI','Επιμέρους τμήματα ATV και ψηφιακών.'],['1.290,994–1.291,481 MHz','Είσοδοι αναμεταδοτών','REPEATER','FM/DV repeater inputs.'],['1.291,494–1.296 MHz','Μικτές λειτουργίες','SSB DIGI','Ευρεία περιοχή πολλαπλών χρήσεων.'],['1.296,000–1.296,150 MHz','CW / MGM','CW DIGI','EME και narrowband.'],['1.296,150–1.296,800 MHz','SSB / MGM / δεδομένα','SSB DIGI','Κέντρο narrowband 1.296,200 MHz.'],['1.296,800–1.296,994 MHz','Φάροι','BEACON','Αποκλειστικό τμήμα φάρων.'],['1.296,994–1.297,981 MHz','FM / ψηφιακή φωνή','FM REPEATER','Έξοδοι και simplex.'],['1.298–1.300 MHz','Μικτές / ψηφιακές λειτουργίες','DIGI','Κανάλια δεδομένων υψηλής ταχύτητας.']],note:'Στην Ελλάδα η 1.240–1.300 MHz είναι δευτερεύουσα κατανομή και συνυπάρχει με πρωτεύουσες υπηρεσίες ραδιοπλοήγησης/δορυφορικής πλοήγησης. Απαιτείται αυξημένη προσοχή και τήρηση των εθνικών όρων.'},
+{ id:'13cm',family:'UHF',name:'13 cm',range:'2.300–2.450 MHz',min:2300,max:2450,unit:'MHz',desc:'Μικροκυματική μπάντα για πειραματισμούς, EME, ATV, δεδομένα και δορυφορική χρήση όπου επιτρέπεται.',rows:[['2.300–2.320 MHz','Μικτές λειτουργίες','SSB DIGI','Narrowband/πειραματικές χρήσεις ανά εθνική διάθεση.'],['2.320–2.322 MHz','EME / φάροι / narrowband','CW SSB BEACON','Κέντρο SSB 2.320,200 MHz.'],['2.322–2.400 MHz','ATV / ψηφιακά / αναμεταδότες','DIGI','Επιμέρους υποπεριοχές ATV και ψηφιακών.'],['2.400–2.450 MHz','Δορυφορική υπηρεσία','SAT','Δορυφορική κατανομή· ειδική προσοχή σε συνύπαρξη υπηρεσιών.']],note:'Μην εκλαμβάνεις την ευρωπαϊκή/IARU υποπεριοχή ως αυτόματη άδεια χρήσης στην Ελλάδα. Έλεγξε τον ΕΚΚΖΣ και τους ειδικούς όρους.'},
+{ id:'9cm',family:'SHF',name:'9 cm',range:'3,400–3,475 GHz',min:3400,max:3475,unit:'MHz',desc:'SHF μικροκύματα για narrowband, EME και φάρους.',rows:[['3,400–3,4008 GHz','CW / MGM / EME','CW DIGI','Κέντρο EME 3,400,100 MHz.'],['3,4008–3,400995 GHz','Φάροι','BEACON','Αποκλειστικό τμήμα φάρων.'],['3,401–3,402 GHz','Όλες οι λειτουργίες','SSB DIGI','Μικτές λειτουργίες.'],['3,402–3,410 GHz','Δορυφορικό downlink','SAT','Λήψη δορυφορικής ζεύξης.'],['3,410–3,475 GHz','Μικτές λειτουργίες','DIGI SSB','Υπόκειται σε εθνική διαθεσιμότητα.']]},
+{ id:'6cm',family:'SHF',name:'6 cm',range:'5,650–5,850 GHz',min:5650,max:5850,unit:'MHz',desc:'SHF για δορυφορικές ζεύξεις, narrowband, EME και ψηφιακά πειράματα.',rows:[['5,650–5,668 GHz','Δορυφορικό uplink','SAT','Ζεύξη προς δορυφόρο.'],['5,668–5,670 GHz','Narrowband','SSB CW','Κέντρο narrowband 5,668,200 MHz.'],['5,670–5,700 GHz','MGM / ψηφιακά','DIGI','Ψηφιακές λειτουργίες.'],['5,720–5,760 GHz','Μικτές λειτουργίες','SSB DIGI','Πειραματισμοί και narrowband.'],['5,760–5,762 GHz','Narrowband / φάροι','SSB BEACON','Κέντρο 5,760,200 MHz.'],['5,762–5,790 GHz','Μικτές λειτουργίες','DIGI SSB','Επιτρεπόμενες μικτές χρήσεις.'],['5,790–5,850 GHz','Δορυφορικό downlink','SAT','Λήψη δορυφορικής ζεύξης.']]},
+{ id:'3cm',family:'SHF',name:'3 cm',range:'10,000–10,500 GHz',min:10000,max:10500,unit:'MHz',desc:'Κλασική μπάντα μικροκυμάτων για terrestrial DX, EME και φάρους.',rows:[['10,000–10,350 GHz','MGM / μικτές λειτουργίες','DIGI','Περιοχές ψηφιακών και πειραματικών λειτουργιών.'],['10,350–10,368 GHz','Μικτές λειτουργίες','SSB DIGI','Πριν από το narrowband τμήμα.'],['10,368–10,3688 GHz','Narrowband / EME','SSB CW','Κέντρο narrowband 10,368,200 MHz.'],['10,3688–10,36899 GHz','Φάροι','BEACON','Τοπικοί φάροι.'],['10,369–10,450 GHz','Μικτές λειτουργίες','SSB DIGI','Πειραματισμοί και ευρυζωνικές χρήσεις.'],['10,450–10,500 GHz','Μικτές / δορυφορικές χρήσεις','SAT DIGI','Έλεγξε εθνικές σημειώσεις.']]},
+{ id:'1.25cm',family:'SHF',name:'1,25 cm',range:'24,000–24,250 GHz',min:24000,max:24250,unit:'MHz',desc:'SHF υψηλών συχνοτήτων, για narrowband, φάρους και δορυφορική χρήση.',rows:[['24,000–24,048 GHz','Δορυφορικές / μικτές λειτουργίες','SAT DIGI','Τμήμα δορυφορικής υπηρεσίας.'],['24,048–24,0488 GHz','Narrowband','SSB CW','Κέντρο narrowband 24,048,200 MHz.'],['24,0488–24,048995 GHz','Φάροι','BEACON','Τοπικοί φάροι.'],['24,049–24,250 GHz','Μικτές λειτουργίες','SSB DIGI','Narrowband και άλλες λειτουργίες κατά το σχέδιο.']]}
+];
+const cards=document.getElementById('cards'), detail=document.getElementById('detail'), search=document.getElementById('search'), family=document.getElementById('family'), mode=document.getElementById('mode');
+let selected=null, activeFamily='';
+const modeLabels={CW:'CW / Τηλεγραφία',SSB:'SSB / Φωνή',FM:'FM / Ψηφιακή φωνή',DIGI:'Ψηφιακά / MGM',BEACON:'Φάροι',SAT:'Δορυφόροι',REPEATER:'Αναμεταδότες'};
+
+function modeTags(s){return s.split(' ').filter(Boolean).map(m=>{let cls=['CW','SSB','FM','DIGI','BEACON','SAT','REPEATER'].includes(m)?m:'DIGI';return `<span class="pill ${cls}">${m}</span>`}).join('')}
+
+function hasSubFilter(){return Boolean(search.value.trim() || mode.value);}
+
+function matchingRows(b){
+  let q=search.value.trim().toLowerCase(), m=mode.value;
+  let bandMeta=(b.name+' '+b.range+' '+b.desc+' '+(b.note||'')).toLowerCase();
+  return b.rows.filter(r=>{
+    let rowModes=r[2].split(' ').filter(Boolean);
+    let modeOk=!m || rowModes.includes(m);
+    if(!modeOk)return false;
+    if(!q)return true;
+    let rowText=(r[0]+' '+r[1]+' '+r[2]+' '+r[3]).toLowerCase();
+    return rowText.includes(q) || (!m && bandMeta.includes(q));
+  });
+}
+
+function filteredBands(){
+  let f=family.value||activeFamily;
+  return bands.filter(b=>{
+    if(f && b.family!==f)return false;
+    if(hasSubFilter())return matchingRows(b).length>0;
+    return true;
+  });
+}
+
+function renderCards(autoSelectFirst=false){
+  let list=filteredBands();
+  cards.innerHTML=list.map(b=>{
+    let subCount=matchingRows(b).length;
+    let subInfo=hasSubFilter()?`<div class="small" style="color:var(--accent2);margin-top:6px">Ταιριαστές υποπεριοχές: ${subCount} από ${b.rows.length}</div>`:'';
+    return `<article class="bandcard ${selected===b.id?'selected':''}" data-id="${b.id}"><div class="bandtop"><span class="bandname">${b.name}</span><span class="pill">${b.family}</span></div><div class="range">${b.range}</div><div class="small">${b.desc}</div>${subInfo}<div class="bar"><span style="width:${Math.max(18,Math.min(100,Math.log10(b.max/b.min+1)*70))}%"></span></div></article>`;
+  }).join('')||'<div class="empty" style="color:#4a5d75">Δεν βρέθηκαν μπάντες ή υποπεριοχές με αυτά τα φίλτρα.</div>';
+  document.getElementById('count').textContent=`${list.length} μπάντες`;
+  cards.querySelectorAll('[data-id]').forEach(el=>el.addEventListener('click',()=>showBand(el.dataset.id,true)));
+
+  if(hasSubFilter()){
+    if(!list.length){
+      selected=null;
+      detail.innerHTML='<div class="empty">Δεν βρέθηκαν υποπεριοχές που να ταιριάζουν στα φίλτρα σου.</div>';
+    } else if(autoSelectFirst || !list.some(b=>b.id===selected)){
+      showBand(list[0].id,false);
+    } else {
+      showBand(selected,false);
+    }
+  } else if(selected && !list.some(b=>b.id===selected)){
+    selected=null;
+    detail.innerHTML='<div class="empty">Επίλεξε μία μπάντα για να δεις τις υποπεριοχές και τις προτεινόμενες χρήσεις της.</div>';
+  }
+}
+
+function showBand(id,shouldScroll=false){
+  selected=id;
+  let b=bands.find(x=>x.id===id);
+  if(!b)return;
+  cards.querySelectorAll('[data-id]').forEach(el=>el.classList.toggle('selected',el.dataset.id===id));
+  let rowsToShow=hasSubFilter()?matchingRows(b):b.rows;
+  let activeFilterText=[];
+  if(mode.value)activeFilterText.push('Τρόπος: '+(modeLabels[mode.value]||mode.value));
+  if(search.value.trim())activeFilterText.push('Αναζήτηση: "'+search.value.trim()+'"');
+  let badgeHtml=activeFilterText.length?`<div class="filterbadge">Φιλτραρισμένες υποπεριοχές (${rowsToShow.length}/${b.rows.length}) · ${activeFilterText.join(' · ')}</div>`:'';
+
+  detail.innerHTML=`<div class="sectionhead"><div><div class="kicker">${b.family} · Ραδιοερασιτεχνική μπάντα</div><h2>${b.name} <span class="range">${b.range}</span></h2><div class="small">${b.desc}</div>${badgeHtml}</div><button onclick="window.print()">Εκτύπωση</button></div><div class="tablewrap"><table><thead><tr><th>Περιοχή συχνοτήτων</th><th>Προτεινόμενη χρήση</th><th>Τρόπος</th><th>Παρατηρήσεις</th></tr></thead><tbody>${rowsToShow.length?rowsToShow.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${modeTags(r[2])}</td><td>${r[3]}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Δεν υπάρχουν υποπεριοχές που να ταιριάζουν με τα τρέχοντα φίλτρα.</td></tr>'}</tbody></table></div>${b.note?`<div class="detailnote"><b>Εθνική σημείωση:</b> ${b.note}</div>`:''}<div class="detailnote">Οι αναγραφόμενες χρήσεις ακολουθούν το πλαίσιο IARU Region 1. Τα όρια εύρους ζώνης, ισχύος, κατηγορίας άδειας και οι εθνικές εξαιρέσεις πρέπει να ελέγχονται στις επίσημες πηγές.</div>`;
+  if(shouldScroll)detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function normalizeFreq(raw){let s=raw.toLowerCase().replace(/,/g,'.').replace(/\s/g,'');let unit='MHz';if(s.endsWith('ghz')){unit='GHz';s=s.slice(0,-3)}else if(s.endsWith('khz')){unit='kHz';s=s.slice(0,-3)}else if(s.endsWith('mhz')){unit='MHz';s=s.slice(0,-3)}let n=parseFloat(s);if(!Number.isFinite(n))return null;if(!raw.toLowerCase().match(/(ghz|mhz|khz)/)){if(n>100000)unit='kHz';else if(n>=1000)unit='kHz';else if(n>=100)unit='MHz';else unit='MHz';}let mhz=unit==='GHz'?n*1000:unit==='kHz'?n/1000:n;return mhz;}
+
+function findFreq(){let mhz=normalizeFreq(document.getElementById('freq').value),box=document.getElementById('freqresult');if(mhz===null){box.className='freqresult show';box.innerHTML='Γράψε μια έγκυρη συχνότητα, π.χ. 14.074 MHz, 144300 kHz ή 1.296 GHz.';return;}let matches=bands.filter(b=>{let min=b.unit==='kHz'?b.min/1000:b.unit==='GHz'?b.min*1000:b.min;let max=b.unit==='kHz'?b.max/1000:b.unit==='GHz'?b.max*1000:b.max;return mhz>=min&&mhz<=max;});if(!matches.length){box.className='freqresult show';box.innerHTML=`Η συχνότητα <b>${mhz.toLocaleString('el-GR')} MHz</b> δεν εντοπίστηκε στις μπάντες αυτού του πίνακα. Έλεγξε τη μονάδα ή την εθνική κατανομή.`;return;}let b=matches[0];let row=b.rows.find(r=>{let nums=(r[0].match(/[0-9]+(?:[,.][0-9]+)?/g)||[]).map(x=>parseFloat(x.replace(',','.')));if(nums.length<2)return false;let convert=v=>b.unit==='kHz'?v/1000:b.unit==='GHz'?v*1000:v;return mhz>=convert(nums[0])&&mhz<=convert(nums[1]);});box.className='freqresult show';box.innerHTML=`<b>${mhz.toLocaleString('el-GR')} MHz</b> βρίσκεται στη μπάντα <b>${b.name}</b> (${b.family}) · ${row?row[1]+' · '+row[2]:'δες τις επιμέρους υποπεριοχές'}.`;family.value=b.family;activeFamily=b.family;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.family===b.family));renderCards(false);showBand(b.id,true);}
+
+document.getElementById('find').addEventListener('click',findFreq);
+document.getElementById('freq').addEventListener('keydown',e=>{if(e.key==='Enter')findFreq()});
+document.getElementById('clear').addEventListener('click',()=>{search.value='';family.value='';mode.value='';activeFamily='';selected=null;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.family===''));renderCards(false);detail.innerHTML='<div class="empty">Επίλεξε μία μπάντα για να δεις τις υποπεριοχές και τις προτεινόμενες χρήσεις της.</div>';document.getElementById('freqresult').className='freqresult';});
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{activeFamily=t.dataset.family;family.value='';document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));renderCards(true);}));
+search.addEventListener('input',()=>renderCards(true));
+family.addEventListener('change',()=>{activeFamily='';document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.family===''));renderCards(true);});
+mode.addEventListener('change',()=>renderCards(true));
+renderCards(false);
+</script>
+</body></html>
