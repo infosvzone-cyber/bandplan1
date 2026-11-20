@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Υπολογιστής Link Budget & Εμβέλειας VHF/UHF — SvZone.eu</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #16202a;
+      --muted: #5c6b7a;
+      --accent: #e65100;
+      --accent-soft: #fff3e0;
+      --border: #dde3ea;
+      --ok: #1b5e20;
+      --ok-bg: #e8f5e9;
+      --warn: #b71c1c;
+      --warn-bg: #ffebee;
+      --mid: #8d6e00;
+      --mid-bg: #fff8e1;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button.preset-btn {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    button.preset-btn:hover {
+      background: #ffe0b2;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .field label, .field-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    span.unit {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #c8d1dc;
+      border-radius: 8px;
+      font-size: 0.93rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="number"]:focus, select:focus {
+      outline: 2px solid rgba(230, 81, 0, 0.25);
+      border-color: var(--accent);
+    }
+
+    input:disabled {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .loss-pill {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafbfd;
+    }
+
+    .kpi.highlight {
+      border-color: #ffcc80;
+      background: #fffaf3;
+    }
+
+    .kpi .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi .val {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .kpi .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .verdict {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+    }
+
+    .verdict.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid #a5d6a7; }
+    .verdict.mid { background: var(--mid-bg); color: var(--mid); border: 1px solid #ffe082; }
+    .verdict.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #ef9a9a; }
+
+    .details {
+      font-size: 0.86rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .details div {
+      margin-bottom: 5px;
+    }
+
+    .details div:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Υπολογιστής Link Budget & Εμβέλειας VHF/UHF</h1>
+        <p>Ραδιοοπτικός ορίζοντας (LOS), απώλειες καλωδίων ανά μέτρο, Fade Margin & πρακτική εμβέλεια</p>
+      </div>
+      <div class="presets">
+        <button type="button" class="preset-btn" data-preset="2m_simplex">2m Simplex (145.500)</button>
+        <button type="button" class="preset-btn" data-preset="2m_rptr">2m Αναμεταδότης (145.650)</button>
+        <button type="button" class="preset-btn" data-preset="70cm_simplex">70cm Simplex (433.500)</button>
+        <button type="button" class="preset-btn" data-preset="70cm_rptr">70cm Αναμεταδότης (438.000)</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. Συχνότητα & Γεωμετρία (LOS)</h2>
+        <div class="field">
+          <label for="freq">Συχνότητα <span class="unit">MHz</span></label>
+          <input id="freq" type="number" step="any" min="1" max="3000" value="145.500" />
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="hTx">Ύψος TX <span class="unit">m AGL</span></label>
+            <input id="hTx" type="number" step="any" min="0" max="3000" value="12" />
+          </div>
+          <div>
+            <label for="hRx">Ύψος RX <span class="unit">m AGL</span></label>
+            <input id="hRx" type="number" step="any" min="0" max="3000" value="6" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="distKm">Απόσταση Ζεύξης <span class="unit">km</span></label>
+            <input id="distKm" type="number" step="any" min="0.1" max="500" value="25" />
+          </div>
+          <div>
+            <label for="targetMargin">Στόχος Margin <span class="unit">dB</span></label>
+            <input id="targetMargin" type="number" step="any" min="0" max="60" value="15" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="kFactor">Παράγοντας Διάθλασης k <span class="unit">Γήινη καμπυλότητα</span></label>
+          <select id="kFactor">
+            <option value="1.3333" selected>k = 4/3 (Κανονική ατμόσφαιρα)</option>
+            <option value="1">k = 1.0 (Γεωμετρικός ορίζοντας)</option>
+            <option value="1.5">k = 1.5 (Ελαφριά τροποσφαιρική διάθλαση)</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Πομπός (TX) & Ομοαξονικό Καλώδιο</h2>
+        <div class="field-row">
+          <div>
+            <label for="txPower">Ισχύς Πομπού <span class="unit">Watts</span></label>
+            <input id="txPower" type="number" step="any" min="0.01" max="5000" value="25" />
+          </div>
+          <div>
+            <label for="txGain">Απολαβή TX <span class="unit">dBi</span></label>
+            <input id="txGain" type="number" step="any" min="-10" max="35" value="2.15" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="txCableType">Τύπος Καλωδίου TX</label>
+          <select id="txCableType">
+            <option value="rg58">RG-58 (~18.0 dB/100m @ 145 MHz)</option>
+            <option value="rg213" selected>RG-213 (~8.2 dB/100m @ 145 MHz)</option>
+            <option value="lmr240">LMR-240 (~9.9 dB/100m @ 145 MHz)</option>
+            <option value="lmr400">LMR-400 (~4.8 dB/100m @ 145 MHz)</option>
+            <option value="ecoflex10">Ecoflex 10 (~4.6 dB/100m @ 145 MHz)</option>
+            <option value="ecoflex15">Ecoflex 15 (~3.1 dB/100m @ 145 MHz)</option>
+            <option value="ldf4">Heliax 1/2" LDF4-50A (~2.7 dB/100m @ 145 MHz)</option>
+            <option value="custom">Χειροκίνητη τιμή συνολικών απωλειών</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="txCableLen">Μήκος Καλωδίου <span class="unit">m</span></label>
+            <input id="txCableLen" type="number" step="any" min="0" max="500" value="15" />
+          </div>
+          <div>
+            <label for="txExtraLoss" id="txExtraLabel">Βύσματα/Φίλτρα <span class="unit">dB</span></label>
+            <input id="txExtraLoss" type="number" step="any" min="0" max="50" value="0.5" />
+          </div>
+        </div>
+        <div id="txTotalLossBadge" class="loss-pill">Συνολικές απώλειες TX: —</div>
+      </section>
+
+      <section class="card">
+        <h2>3. Δέκτης (RX) & Ομοαξονικό Καλώδιο</h2>
+        <div class="field-row">
+          <div>
+            <label for="rxGain">Απολαβή RX <span class="unit">dBi</span></label>
+            <input id="rxGain" type="number" step="any" min="-10" max="35" value="2.15" />
+          </div>
+          <div>
+            <label for="rxSens">Ευαισθησία <span class="unit">dBm</span></label>
+            <input id="rxSens" type="number" step="any" min="-150" max="-50" value="-121" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="rxCableType">Τύπος Καλωδίου RX</label>
+          <select id="rxCableType">
+            <option value="rg58">RG-58 (~18.0 dB/100m @ 145 MHz)</option>
+            <option value="rg213" selected>RG-213 (~8.2 dB/100m @ 145 MHz)</option>
+            <option value="lmr240">LMR-240 (~9.9 dB/100m @ 145 MHz)</option>
+            <option value="lmr400">LMR-400 (~4.8 dB/100m @ 145 MHz)</option>
+            <option value="ecoflex10">Ecoflex 10 (~4.6 dB/100m @ 145 MHz)</option>
+            <option value="ecoflex15">Ecoflex 15 (~3.1 dB/100m @ 145 MHz)</option>
+            <option value="ldf4">Heliax 1/2" LDF4-50A (~2.7 dB/100m @ 145 MHz)</option>
+            <option value="custom">Χειροκίνητη τιμή συνολικών απωλειών</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="rxCableLen">Μήκος Καλωδίου <span class="unit">m</span></label>
+            <input id="rxCableLen" type="number" step="any" min="0" max="500" value="12" />
+          </div>
+          <div>
+            <label for="rxExtraLoss" id="rxExtraLabel">Βύσματα/Φίλτρα <span class="unit">dB</span></label>
+            <input id="rxExtraLoss" type="number" step="any" min="0" max="50" value="0.5" />
+          </div>
+        </div>
+        <div id="rxTotalLossBadge" class="loss-pill">Συνολικές απώλειες RX: —</div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>4. Αποτελέσματα Υπολογισμού</h2>
+      <div id="verdict" class="verdict ok">Υπολογισμός σε εξέλιξη...</div>
+
+      <div class="results-grid">
+        <div class="kpi">
+          <div class="label">Ραδιοοπτικός Ορίζοντας (LOS)</div>
+          <div id="losTotal" class="val">—</div>
+          <div id="losSplit" class="sub">TX: — | RX: —</div>
+        </div>
+        <div class="kpi highlight">
+          <div class="label">Πρακτική Εμβέλεια (LOS + Margin)</div>
+          <div id="practicalRangeKpi" class="val">—</div>
+          <div id="fsplRangeSub" class="sub">Θεωρητικό FSPL: —</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Free Space Path Loss (FSPL)</div>
+          <div id="fsplVal" class="val">—</div>
+          <div id="fsplSub" class="sub">Στην επιλεγμένη απόσταση</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Λαμβανόμενο Σήμα (RX)</div>
+          <div id="rxSigVal" class="val">—</div>
+          <div id="eirpVal" class="sub">EIRP: —</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Fade Margin (@ Απόσταση)</div>
+          <div id="marginVal" class="val">—</div>
+          <div id="maxFsplVal" class="sub">Max FSPL: —</div>
+        </div>
+      </div>
+
+      <div class="details">
+        <div id="fresnelInfo">Ακτίνα 1ης Ζώνης Fresnel (στο μέσο της διαδρομής): —</div>
+        <div id="losCheckInfo">Κατάσταση οπτικού ορίζοντα: —</div>
+        <div id="practicalRangeInfo">Πρακτική εκτίμηση εμβέλειας (συνδυασμός LOS + Link Budget): —</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const CABLE_DB_100M_AT_145MHZ = {
+      rg58: 18.0,
+      rg213: 8.2,
+      lmr240: 9.9,
+      lmr400: 4.8,
+      ecoflex10: 4.6,
+      ecoflex15: 3.1,
+      ldf4: 2.7
+    };
+
+    const PRESETS = {
+      "2m_simplex": {
+        freq: 145.500, hTx: 12, hRx: 6, distKm: 25, targetMargin: 15, kFactor: "1.3333",
+        txPower: 25, txGain: 2.15, txCableType: "rg213", txCableLen: 15, txExtraLoss: 0.5,
+        rxGain: 2.15, rxSens: -121, rxCableType: "rg213", rxCableLen: 12, rxExtraLoss: 0.5
+      },
+      "2m_rptr": {
+        freq: 145.650, hTx: 45, hRx: 5, distKm: 55, targetMargin: 15, kFactor: "1.3333",
+        txPower: 25, txGain: 6.0, txCableType: "lmr400", txCableLen: 25, txExtraLoss: 1.2,
+        rxGain: 2.15, rxSens: -121, rxCableType: "rg213", rxCableLen: 10, rxExtraLoss: 0.5
+      },
+      "70cm_simplex": {
+        freq: 433.500, hTx: 12, hRx: 6, distKm: 15, targetMargin: 15, kFactor: "1.3333",
+        txPower: 25, txGain: 3.5, txCableType: "lmr400", txCableLen: 15, txExtraLoss: 0.6,
+        rxGain: 3.5, rxSens: -120, rxCableType: "lmr400", rxCableLen: 12, rxExtraLoss: 0.6
+      },
+      "70cm_rptr": {
+        freq: 438.000, hTx: 50, hRx: 5, distKm: 40, targetMargin: 15, kFactor: "1.3333",
+        txPower: 20, txGain: 7.5, txCableType: "ecoflex10", txCableLen: 25, txExtraLoss: 1.5,
+        rxGain: 3.5, rxSens: -120, rxCableType: "lmr400", rxCableLen: 10, rxExtraLoss: 0.6
+      }
+    };
+
+    const inputIds = [
+      "freq", "hTx", "hRx", "distKm", "targetMargin", "kFactor",
+      "txPower", "txGain", "txCableType", "txCableLen", "txExtraLoss",
+      "rxGain", "rxSens", "rxCableType", "rxCableLen", "rxExtraLoss"
+    ];
+
+    function numVal(id, fallback, minVal) {
+      const el = document.getElementById(id);
+      if (!el) return fallback;
+      const raw = String(el.value).replace(",", ".");
+      const n = parseFloat(raw);
+      if (!Number.isFinite(n)) return fallback;
+      return typeof minVal === "number" ? Math.max(minVal, n) : n;
+    }
+
+    function formatRangeKm(km) {
+      if (!Number.isFinite(km) || km <= 0) return "0.0 km";
+      if (km > 9999) return "> 9,999 km";
+      return `${km.toFixed(1)} km`;
+    }
+
+    function computeFeederLoss(type, lengthM, extraDb, freqMhz) {
+      if (type === "custom") {
+        return { totalDb: extraDb, per100m: null };
+      }
+      const ref145 = CABLE_DB_100M_AT_145MHZ[type] || 8.2;
+      const per100m = ref145 * Math.sqrt(freqMhz / 145.0);
+      const cableOnlyDb = (per100m / 100.0) * lengthM;
+      return { totalDb: cableOnlyDb + extraDb, per100m };
+    }
+
+    function applyPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      Object.entries(p).forEach(([k, v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v;
+      });
+      calculate();
+    }
+
+    function calculate() {
+      try {
+        const freq = numVal("freq", 145.5, 0.1);
+        const hTx = numVal("hTx", 12, 0);
+        const hRx = numVal("hRx", 6, 0);
+        const distKm = numVal("distKm", 25, 0.05);
+        const targetMargin = numVal("targetMargin", 15, 0);
+        const k = numVal("kFactor", 1.3333, 0.5);
+
+        const txPowerW = numVal("txPower", 25, 0.001);
+        const txGain = numVal("txGain", 2.15);
+        const txCableType = document.getElementById("txCableType").value;
+        const txCableLen = numVal("txCableLen", 15, 0);
+        const txExtraLoss = numVal("txExtraLoss", 0.5, 0);
+
+        const rxGain = numVal("rxGain", 2.15);
+        const rxSens = numVal("rxSens", -121);
+        const rxCableType = document.getElementById("rxCableType").value;
+        const rxCableLen = numVal("rxCableLen", 12, 0);
+        const rxExtraLoss = numVal("rxExtraLoss", 0.5, 0);
+
+        document.getElementById("txCableLen").disabled = txCableType === "custom";
+        document.getElementById("rxCableLen").disabled = rxCableType === "custom";
+        document.getElementById("txExtraLabel").innerHTML =
+          txCableType === "custom"
+            ? 'Συνολικές Απώλειες <span class="unit">dB</span>'
+            : 'Βύσματα/Φίλτρα <span class="unit">dB</span>';
+        document.getElementById("rxExtraLabel").innerHTML =
+          rxCableType === "custom"
+            ? 'Συνολικές Απώλειες <span class="unit">dB</span>'
+            : 'Βύσματα/Φίλτρα <span class="unit">dB</span>';
+
+        const txFeed = computeFeederLoss(txCableType, txCableLen, txExtraLoss, freq);
+        const rxFeed = computeFeederLoss(rxCableType, rxCableLen, rxExtraLoss, freq);
+
+        document.getElementById("txTotalLossBadge").textContent =
+          txFeed.per100m !== null
+            ? `Συνολικές απώλειες TX: ${txFeed.totalDb.toFixed(2)} dB (${txFeed.per100m.toFixed(1)} dB/100m @ ${freq.toFixed(1)} MHz)`
+            : `Συνολικές απώλειες TX: ${txFeed.totalDb.toFixed(2)} dB (χειροκίνητα)`;
+
+        document.getElementById("rxTotalLossBadge").textContent =
+          rxFeed.per100m !== null
+            ? `Συνολικές απώλειες RX: ${rxFeed.totalDb.toFixed(2)} dB (${rxFeed.per100m.toFixed(1)} dB/100m @ ${freq.toFixed(1)} MHz)`
+            : `Συνολικές απώλειες RX: ${rxFeed.totalDb.toFixed(2)} dB (χειροκίνητα)`;
+
+        const dTxKm = 3.57 * Math.sqrt(k * hTx);
+        const dRxKm = 3.57 * Math.sqrt(k * hRx);
+        const losTotalKm = dTxKm + dRxKm;
+
+        const txPowerDbm = 10 * Math.log10(txPowerW * 1000);
+        const eirpDbm = txPowerDbm - txFeed.totalDb + txGain;
+
+        const fsplDb = 32.44 + 20 * Math.log10(freq) + 20 * Math.log10(distKm);
+        const rxSignalDbm = eirpDbm - fsplDb + rxGain - rxFeed.totalDb;
+        const fadeMarginDb = rxSignalDbm - rxSens;
+
+        const maxFsplZeroDb = eirpDbm + rxGain - rxFeed.totalDb - rxSens;
+        const maxFsplTargetDb = maxFsplZeroDb - targetMargin;
+
+        const maxRangeZeroKm = Math.pow(10, (maxFsplZeroDb - 32.44 - 20 * Math.log10(freq)) / 20);
+        const maxRangeTargetKm = Math.pow(10, (maxFsplTargetDb - 32.44 - 20 * Math.log10(freq)) / 20);
+        const limitingKm = Math.min(losTotalKm, maxRangeTargetKm);
+
+        const fGhz = freq / 1000;
+        const r1MidMeters = 8.656 * Math.sqrt(distKm / fGhz) * 0.5;
+        const clearance60Meters = 0.6 * r1MidMeters;
+
+        document.getElementById("losTotal").textContent = `${losTotalKm.toFixed(1)} km`;
+        document.getElementById("losSplit").textContent = `TX: ${dTxKm.toFixed(1)} km | RX: ${dRxKm.toFixed(1)} km`;
+
+        document.getElementById("practicalRangeKpi").textContent = formatRangeKm(limitingKm);
+        document.getElementById("fsplRangeSub").textContent =
+          `Θεωρητικό FSPL (+${targetMargin.toFixed(0)} dB): ${formatRangeKm(maxRangeTargetKm)} (0 dB: ${formatRangeKm(maxRangeZeroKm)})`;
+
+        document.getElementById("fsplVal").textContent = `${fsplDb.toFixed(1)} dB`;
+        document.getElementById("fsplSub").textContent = `${freq.toFixed(3)} MHz @ ${distKm.toFixed(1)} km`;
+
+        document.getElementById("rxSigVal").textContent = `${rxSignalDbm.toFixed(1)} dBm`;
+        document.getElementById("eirpVal").textContent =
+          `EIRP: ${eirpDbm.toFixed(1)} dBm (${Math.pow(10, (eirpDbm - 30) / 10).toFixed(1)} W)`;
+
+        document.getElementById("marginVal").textContent =
+          `${fadeMarginDb >= 0 ? "+" : ""}${fadeMarginDb.toFixed(1)} dB`;
+        document.getElementById("maxFsplVal").textContent = `Max FSPL (0 dB): ${maxFsplZeroDb.toFixed(1)} dB`;
+
+        document.getElementById("fresnelInfo").textContent =
+          `1η Ζώνη Fresnel (στο μέσο της απόστασης): ακτίνα r1 ≈ ${r1MidMeters.toFixed(1)} m (60% clearance: ~${clearance60Meters.toFixed(1)} m).`;
+
+        const losRatio = distKm / Math.max(0.1, losTotalKm);
+        document.getElementById("losCheckInfo").textContent =
+          distKm <= losTotalKm
+            ? `Οπτικός ορίζοντας: Η απόσταση (${distKm.toFixed(1)} km) βρίσκεται εντός του ραδιοοπτικού ορίζοντα (${losTotalKm.toFixed(1)} km, ${(losRatio * 100).toFixed(0)}%).`
+            : `Οπτικός ορίζοντας: ΠΡΟΣΟΧΗ — Η απόσταση (${distKm.toFixed(1)} km) ξεπερνά τον ραδιοοπτικό ορίζοντα (${losTotalKm.toFixed(1)} km) κατά ${(distKm - losTotalKm).toFixed(1)} km.`;
+
+        const limitingFactor = losTotalKm < maxRangeTargetKm
+          ? "ο ραδιοοπτικός ορίζοντας (ύψος κεραιών)"
+          : `το επιθυμητό Fade Margin (+${targetMargin.toFixed(0)} dB)`;
+        document.getElementById("practicalRangeInfo").textContent =
+          `Πρακτική εκτίμηση εμβέλειας: ~${formatRangeKm(limitingKm)} (περιοριστικός παράγοντας είναι ${limitingFactor}).`;
+
+        const verdictEl = document.getElementById("verdict");
+        verdictEl.className = "verdict";
+
+        if (fadeMarginDb >= targetMargin && distKm <= losTotalKm) {
+          verdictEl.classList.add("ok");
+          verdictEl.textContent = `Εντός στόχου: +${fadeMarginDb.toFixed(1)} dB Fade Margin (στόχος +${targetMargin.toFixed(0)} dB) και εντός ραδιοοπτικού ορίζοντα.`;
+        } else if (fadeMarginDb >= 5) {
+          verdictEl.classList.add("mid");
+          verdictEl.textContent = `Μέτριο περιθώριο ζεύξης (+${fadeMarginDb.toFixed(1)} dB Fade Margin) — Εμπόδια εδάφους ή υπέρβαση LOS ενδέχεται να επηρεάσουν το σήμα.`;
+        } else {
+          verdictEl.classList.add("warn");
+          verdictEl.textContent = `Οριακό / Αρνητικό περιθώριο ζεύξης (${fadeMarginDb.toFixed(1)} dB Fade Margin) — Υψηλός κίνδυνος ασθενικού ή μη αναγνώσιμου σήματος.`;
+        }
+      } catch (err) {
+        const verdictEl = document.getElementById("verdict");
+        if (verdictEl) {
+          verdictEl.className = "verdict warn";
+          verdictEl.textContent = "Έλεγξε τις τιμές εισόδου για να ολοκληρωθεί ο υπολογισμός.";
+        }
+      }
+    }
+
+    document.querySelectorAll("button.preset-btn").forEach((btn) => {
+      btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+    });
+
+    inputIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", calculate);
+      el.addEventListener("change", calculate);
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
